@@ -2,6 +2,8 @@
 using TMPro;
 using UnityEngine.Audio;
 using UnityEngine.SocialPlatforms.Impl;
+using UnityEngine.SceneManagement;
+
 
 public class Player : MonoBehaviour
 {
@@ -133,14 +135,13 @@ public class Player : MonoBehaviour
         {
             WinCanvas.SetActive(true);
         }
-
         Time.timeScale = 0;
     }
     void CollectCoin(GameObject coin)
     {
-        score += 10;  // Tăng điểm khi thu thập coin
-        UpdateScoreUI();  // Cập nhật UI
-        Destroy(coin);  // Hủy đối tượng coin sau khi thu thập
+        score += 10;
+        UpdateScoreUI();
+        Destroy(coin);
     }
 
     void UpdateScoreUI()
