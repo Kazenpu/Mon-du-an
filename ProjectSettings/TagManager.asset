@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Ground
   - Ladder
+  - Coin
   layers:
   - Default
   - TransparentFX

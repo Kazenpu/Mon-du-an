@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
+using TMPro;
 using UnityEngine.Audio;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class Player : MonoBehaviour
 {
@@ -7,15 +9,22 @@ public class Player : MonoBehaviour
     public float climbSpeed = 3f;
     public float jumpHeight = 3f;
 
+    public GameObject gameOverCanvas;
+    public GameObject WinCanvas;
+    public TextMeshProUGUI scoreText;
+
     private Rigidbody2D rb;
     private Animator animator;
     private Vector2 move;
     private bool isClimbing = false;
+    private int score = 0;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+
+        UpdateScoreUI();
     }
 
     void Update()
@@ -74,6 +83,18 @@ public class Player : MonoBehaviour
             isClimbing = true;
             rb.linearVelocity = Vector2.zero;
         }
+        if (collision.gameObject.CompareTag("Spike"))
+        {
+            Die();
+        }
+        if (collision.gameObject.CompareTag("Exit"))
+        {
+            Win();
+        }
+        if (collision.gameObject.CompareTag("Coin"))
+        {
+            CollectCoin(collision.gameObject);
+        }
     }
 
     void OnTriggerExit2D(Collider2D collision)
@@ -95,5 +116,38 @@ public class Player : MonoBehaviour
     {
         animator.SetBool("Running", move.x != 0);
         animator.SetBool("Climbing", isClimbing && move.y != 0);
+    }
+
+    void Die()
+    {
+        if (gameOverCanvas != null)
+        {
+            gameOverCanvas.SetActive(true);
+        }
+
+        Destroy(gameObject);
+    }
+    void Win()
+    {
+        if (WinCanvas != null)
+        {
+            WinCanvas.SetActive(true);
+        }
+
+        Time.timeScale = 0;
+    }
+    void CollectCoin(GameObject coin)
+    {
+        score += 10;  // Tăng điểm khi thu thập coin
+        UpdateScoreUI();  // Cập nhật UI
+        Destroy(coin);  // Hủy đối tượng coin sau khi thu thập
+    }
+
+    void UpdateScoreUI()
+    {
+        if (scoreText != null)
+        {
+            scoreText.text = "" + score.ToString();
+        }
     }
 }
