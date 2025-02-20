@@ -1,15 +1,21 @@
-﻿using UnityEngine;
+﻿using NUnit.Framework.Internal.Builders;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.Threading;
 using TMPro;
-using UnityEngine.Audio;
-using UnityEngine.SocialPlatforms.Impl;
-using UnityEngine.SceneManagement;
-
+using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
     public float speed = 5f;
     public float climbSpeed = 3f;
     public float jumpHeight = 3f;
+
+    public GameObject prefabArrow;
+    public Transform shootPoint;
 
     public GameObject gameOverCanvas;
     public GameObject WinCanvas;
@@ -20,12 +26,13 @@ public class Player : MonoBehaviour
     private Vector2 move;
     private bool isClimbing = false;
     private int score = 0;
+    private bool facingRight = true;
 
+    private bool canJump = true;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-
         UpdateScoreUI();
     }
 
@@ -44,23 +51,25 @@ public class Player : MonoBehaviour
 
         move.Normalize();
 
-        if (move.x > 0) Flip(false);
-        else if (move.x < 0) Flip(true);
+        if (move.x > 0) Flip(true);
+        else if (move.x < 0) Flip(false);
 
         UpdateAnimation();
 
         if (Input.GetKeyDown(KeyCode.J))
         {
             animator.SetTrigger("Attacking");
+            StartCoroutine(PrefabArrows());
         }
         if (Input.GetKeyDown(KeyCode.L))
         {
             animator.SetTrigger("Rolling");
         }
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
             animator.SetTrigger("Jumping");
             rb.linearVelocity = new Vector2(move.x * speed, jumpHeight);
+            canJump = false;  // Không thể nhảy lần nữa cho đến khi chạm đất
         }
     }
 
@@ -77,6 +86,54 @@ public class Player : MonoBehaviour
             rb.gravityScale = 1;
         }
     }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            canJump = true;  // Khi chạm đất, cho phép nhảy lại
+        }
+        if (collision.gameObject.CompareTag("Ladder"))
+        {
+            canJump = true;  // Khi chạm thang, cho phép nhảy lại
+        }
+    }
+    IEnumerator PrefabArrows()
+    {
+        Vector3 direction = transform.localScale.x > 0 ? transform.right : -transform.right;
+
+        for (int i = 0; i < 1; i++)
+        {
+            Vector3 spawnPos = shootPoint.position + direction * 1 * i;
+            GameObject createdArrow = Instantiate(prefabArrow, spawnPos, Quaternion.identity);
+
+            if (transform.localScale.x > 0)
+            {
+                createdArrow.transform.localScale = new Vector3(1, 1, 1);
+            }
+            else
+            {
+                createdArrow.transform.localScale = new Vector3(-1, 1, 1);
+            }
+
+            Rigidbody2D rbArrow = createdArrow.GetComponent<Rigidbody2D>();
+            if (rbArrow != null)
+            {
+                rbArrow.linearVelocity = direction * 5;
+            }
+            yield return new WaitForSeconds(1); //gia tri tra ve cua IEnumerator
+        }
+    }
+    void Flip(bool faceRight)
+    {
+        facingRight = faceRight;
+        transform.localScale = new Vector3(faceRight ? 1 : -1, 1, 1);
+    }
+
+    void UpdateAnimation()
+    {
+        animator.SetBool("Running", move.x != 0);
+        animator.SetBool("Climbing", isClimbing && move.y != 0);
+    }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -86,6 +143,10 @@ public class Player : MonoBehaviour
             rb.linearVelocity = Vector2.zero;
         }
         if (collision.gameObject.CompareTag("Spike"))
+        {
+            Die();
+        }
+        if (collision.gameObject.CompareTag("Enemy"))
         {
             Die();
         }
@@ -106,29 +167,15 @@ public class Player : MonoBehaviour
             isClimbing = false;
         }
     }
-
-    void Flip(bool facingLeft)
-    {
-        Vector2 newScale = transform.localScale;
-        newScale.x = facingLeft ? -1 : 1;
-        transform.localScale = newScale;
-    }
-
-    void UpdateAnimation()
-    {
-        animator.SetBool("Running", move.x != 0);
-        animator.SetBool("Climbing", isClimbing && move.y != 0);
-    }
-
     void Die()
     {
         if (gameOverCanvas != null)
         {
             gameOverCanvas.SetActive(true);
         }
-
         Destroy(gameObject);
     }
+
     void Win()
     {
         if (WinCanvas != null)
@@ -137,6 +184,7 @@ public class Player : MonoBehaviour
         }
         Time.timeScale = 0;
     }
+
     void CollectCoin(GameObject coin)
     {
         score += 10;
@@ -148,7 +196,7 @@ public class Player : MonoBehaviour
     {
         if (scoreText != null)
         {
-            scoreText.text = "" + score.ToString();
+            scoreText.text = score.ToString();
         }
     }
 }

@@ -1508,6 +1508,8 @@ MonoBehaviour:
   speed: 5
   climbSpeed: 3
   jumpHeight: 5
+  prefabArrow: {fileID: 0}
+  shootPoint: {fileID: 0}
   gameOverCanvas: {fileID: 1134819821}
   WinCanvas: {fileID: 1239004419}
   scoreText: {fileID: 816032781}
