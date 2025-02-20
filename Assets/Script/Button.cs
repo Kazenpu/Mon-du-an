@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Button : MonoBehaviour
@@ -24,5 +24,15 @@ public class Button : MonoBehaviour
     {
         Time.timeScale = 1;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+    }
+    public void Menu()
+    {
+        Time.timeScale = 1;
+        SceneManager.LoadScene("Level 0");
+    }
+    public void ExitGame()
+    {
+        Debug.Log("Đa thoat game");
+        Application.Quit();
     }
 }

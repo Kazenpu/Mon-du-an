@@ -11,7 +11,7 @@ public class Arrow : MonoBehaviour
     {
         if (collision.CompareTag("Enemy"))
         {
-            Debug.Log("Bắn trúng mục tiêu!");
+            Debug.Log("Ban trung ke dich");
             Destroy(this.gameObject);
             Destroy(collision.gameObject);
         }

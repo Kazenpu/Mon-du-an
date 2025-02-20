@@ -27,7 +27,6 @@ public class EnemyPatrol : MonoBehaviour
             Flip();
         }
 
-        // Di chuyển quái vật
         transform.Translate(Vector2.right * speed * (movingRight ? 1 : -1) * Time.deltaTime);
     }
 
