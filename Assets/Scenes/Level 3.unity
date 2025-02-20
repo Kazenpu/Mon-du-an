@@ -1291,9 +1291,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdf3173b0593d6e4b957f93ffec8e775, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 5
-  climbSpeed: 3
-  jumpHeight: 5
+  speed: 3
+  climbSpeed: 5
+  jumpHeight: 7
   prefabArrow: {fileID: 714472694326207417, guid: 3b7fccf8635c8fc42bf65d05182b4d5a, type: 3}
   shootPoint: {fileID: 2026201002}
   gameOverCanvas: {fileID: 2070803938}

@@ -6,12 +6,10 @@ public class EnemyPatrol : MonoBehaviour
     public float patrolDistance = 5f;
     private Vector2 startPosition;
     private bool movingRight = true;
-    private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         startPosition = transform.position;
     }
@@ -29,20 +27,21 @@ public class EnemyPatrol : MonoBehaviour
             Flip();
         }
 
-        rb.linearVelocity = new Vector2(speed * (movingRight ? 1 : -1), rb.linearVelocity.y);
+        // Di chuyển quái vật
+        transform.Translate(Vector2.right * speed * (movingRight ? 1 : -1) * Time.deltaTime);
     }
 
     void Flip()
     {
         movingRight = !movingRight;
-        transform.Rotate(0f, 180f, 0f); // Lật ảnh
+        spriteRenderer.flipX = !spriteRenderer.flipX; // Lật sprite
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Ground"))
+        if (collision.gameObject.CompareTag("Wall")) // Kiểm tra va chạm với tường
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y); // Đảm bảo quái không xuyên qua nền
+            Flip();
         }
     }
 }

@@ -10,6 +10,7 @@ TagManager:
   - Spike
   - Exit
   - Arrow
+  - Enemy
   layers:
   - Default
   - TransparentFX
