@@ -1,9 +1,4 @@
-﻿using NUnit.Framework.Internal.Builders;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Threading;
+﻿using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,11 +19,12 @@ public class Player : MonoBehaviour
     private Rigidbody2D rb;
     private Animator animator;
     private Vector2 move;
-    private bool isClimbing = false;
+    private bool isOnLadder = false;  // Để kiểm tra có đang ở trên thang không
     private int score = 0;
     private bool facingRight = true;
 
     private bool canJump = true;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -40,7 +36,7 @@ public class Player : MonoBehaviour
     {
         move.x = Input.GetAxis("Horizontal");
 
-        if (isClimbing)
+        if (isOnLadder)
         {
             move.y = Input.GetAxis("Vertical");
         }
@@ -75,7 +71,7 @@ public class Player : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (isClimbing)
+        if (isOnLadder)
         {
             rb.linearVelocity = new Vector2(move.x * speed, move.y * climbSpeed);
             rb.gravityScale = 0;
@@ -86,17 +82,15 @@ public class Player : MonoBehaviour
             rb.gravityScale = 1;
         }
     }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Ground"))
+        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Ladder"))
         {
-            canJump = true;  // Khi chạm đất, cho phép nhảy lại
-        }
-        if (collision.gameObject.CompareTag("Ladder"))
-        {
-            canJump = true;  // Khi chạm thang, cho phép nhảy lại
+            canJump = true;  // Khi chạm đất hoặc thang, cho phép nhảy lại
         }
     }
+
     IEnumerator PrefabArrows()
     {
         Vector3 direction = transform.localScale.x > 0 ? transform.right : -transform.right;
@@ -106,47 +100,48 @@ public class Player : MonoBehaviour
             Vector3 spawnPos = shootPoint.position + direction * 1 * i;
             GameObject createdArrow = Instantiate(prefabArrow, spawnPos, Quaternion.identity);
 
-            if (transform.localScale.x > 0)
-            {
-                createdArrow.transform.localScale = new Vector3(1, 1, 1);
-            }
-            else
-            {
-                createdArrow.transform.localScale = new Vector3(-1, 1, 1);
-            }
+            createdArrow.transform.localScale = new Vector3(facingRight ? 1 : -1, 1, 1);
 
             Rigidbody2D rbArrow = createdArrow.GetComponent<Rigidbody2D>();
             if (rbArrow != null)
             {
                 rbArrow.linearVelocity = direction * 5;
             }
-            yield return new WaitForSeconds(1); //gia tri tra ve cua IEnumerator
+            yield return new WaitForSeconds(1);
         }
     }
+
     void Flip(bool faceRight)
     {
-        facingRight = faceRight;
-        transform.localScale = new Vector3(faceRight ? 1 : -1, 1, 1);
+        if (facingRight != faceRight)
+        {
+            facingRight = faceRight;
+            transform.localScale = new Vector3(faceRight ? 1 : -1, 1, 1);
+        }
     }
 
     void UpdateAnimation()
     {
         animator.SetBool("Running", move.x != 0);
-        animator.SetBool("Climbing", isClimbing && move.y != 0);
+
+        //if (isOnLadder)
+        //{
+        //    animator.SetTrigger("Climbing");
+        //}
+        animator.SetBool("Climbing", isOnLadder);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.CompareTag("Ladder"))
         {
-            isClimbing = true;
+            isOnLadder = true;
+            animator.SetBool("Climbing", false);
+            animator.SetBool("Idle", false);
+            //animator.CrossFade("Player Climb Animation", 0.01f);
             rb.linearVelocity = Vector2.zero;
         }
-        if (collision.gameObject.CompareTag("Spike"))
-        {
-            Die();
-        }
-        if (collision.gameObject.CompareTag("Enemy"))
+        if (collision.gameObject.CompareTag("Spike") || collision.gameObject.CompareTag("Enemy"))
         {
             Die();
         }
@@ -164,9 +159,13 @@ public class Player : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Ladder"))
         {
-            isClimbing = false;
+            isOnLadder = false;
+            animator.SetBool("Climbing", false);
+            animator.SetBool("Idle", true);
+            //animator.Play("Player Idle Animation");
         }
     }
+
     void Die()
     {
         if (gameOverCanvas != null)

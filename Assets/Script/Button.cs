@@ -3,6 +3,10 @@ using UnityEngine.SceneManagement;
 
 public class Button : MonoBehaviour
 {
+    internal object onClick;
+
+    public object OnClick { get; internal set; }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -32,7 +36,7 @@ public class Button : MonoBehaviour
     }
     public void ExitGame()
     {
-        Debug.Log("Đa thoat game");
+        Debug.Log("Đã thoát game");
         Application.Quit();
     }
 }
