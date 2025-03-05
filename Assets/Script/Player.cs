@@ -5,6 +5,13 @@ using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
+    private AudioSource audioSource;
+    private AudioSource effectSource;
+    public AudioClip jumpSound;
+    public AudioClip climbSound;
+    public AudioClip runSound;
+    public AudioClip coin;
+
     public float speed = 5f;
     public float climbSpeed = 3f;
     public float jumpHeight = 3f;
@@ -19,7 +26,7 @@ public class Player : MonoBehaviour
     private Rigidbody2D rb;
     private Animator animator;
     private Vector2 move;
-    private bool isOnLadder = false;  // Để kiểm tra có đang ở trên thang không
+    private bool isOnLadder = false;
     private int score = 0;
     private bool facingRight = true;
 
@@ -29,6 +36,10 @@ public class Player : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+
+        audioSource = GetComponent<AudioSource>();
+        effectSource = gameObject.AddComponent<AudioSource>();
+
         UpdateScoreUI();
     }
 
@@ -53,19 +64,22 @@ public class Player : MonoBehaviour
         UpdateAnimation();
 
         if (Input.GetKeyDown(KeyCode.J))
-        {
-            animator.SetTrigger("Attacking");
+        {   
+            animator.Play("Player Attack Animation");
             StartCoroutine(PrefabArrows());
         }
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            animator.SetTrigger("Rolling");
-        }
+
+        //if (Input.GetKeyDown(KeyCode.L))
+        //{
+        //    animator.SetTrigger("Rolling");
+        //}
+
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
+            effectSource.PlayOneShot(jumpSound);
             animator.SetTrigger("Jumping");
             rb.linearVelocity = new Vector2(move.x * speed, jumpHeight);
-            canJump = false;  // Không thể nhảy lần nữa cho đến khi chạm đất
+            canJump = false;
         }
     }
 
@@ -105,10 +119,11 @@ public class Player : MonoBehaviour
             Rigidbody2D rbArrow = createdArrow.GetComponent<Rigidbody2D>();
             if (rbArrow != null)
             {
-                rbArrow.linearVelocity = direction * 5;
+                rbArrow.linearVelocity = direction * 6;
             }
-            yield return new WaitForSeconds(1);
+            
         }
+        yield return new WaitForSeconds(1f);
     }
 
     void Flip(bool faceRight)
@@ -129,6 +144,20 @@ public class Player : MonoBehaviour
         //    animator.SetTrigger("Climbing");
         //}
         animator.SetBool("Climbing", isOnLadder);
+
+        if (move.x != 0)
+        {
+            if (!audioSource.isPlaying || audioSource.clip != runSound)
+            {
+                audioSource.clip = runSound;
+                audioSource.loop = true;
+                audioSource.Play();
+            }
+        }
+        else if (move.x == 0 && audioSource.clip == runSound)
+        {
+            audioSource.Stop();
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -138,6 +167,7 @@ public class Player : MonoBehaviour
             isOnLadder = true;
             animator.SetBool("Climbing", false);
             animator.SetBool("Idle", false);
+            audioSource.PlayOneShot(climbSound);
             //animator.CrossFade("Player Climb Animation", 0.01f);
             rb.linearVelocity = Vector2.zero;
         }
@@ -151,6 +181,7 @@ public class Player : MonoBehaviour
         }
         if (collision.gameObject.CompareTag("Coin"))
         {
+            effectSource.PlayOneShot(coin);
             CollectCoin(collision.gameObject);
         }
     }
